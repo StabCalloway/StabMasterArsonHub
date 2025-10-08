@@ -1,0 +1,16 @@
+{
+  "enhancements": [
+    {
+      "name": "AI Voice Trainer",
+      "description": "Improves in-game voice AI synthesis with offline models.",
+      "tags": ["AI", "Audio"],
+      "category": "AI Tools"
+    },
+    {
+      "name": "HUD Overlay Optimizer",
+      "description": "Refines performance of the heads-up display under load.",
+      "tags": ["UI", "Performance"],
+      "category": "HUD Tweaks"
+    }
+  ]
+}
