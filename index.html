@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>StabMasterArson Enhancement Portal</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body { font-family: system-ui; background: #121212; color: #eee; margin: 0; }
+header { background: #1e1e1e; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+#offline { padding: 4px 8px; border-radius: 6px; font-size: 0.9em; }
+#offline.on { background: #2ecc71; }
+#offline.off { background: #e74c3c; }
+#sidebar { width: 240px; float: left; background: #1b1b1b; height: 100vh; overflow-y: auto; padding: 10px; }
+#content { margin-left: 250px; padding: 20px; }
+.tag { display: inline-block; margin: 2px; padding: 4px 8px; border-radius: 8px; font-size: 0.8em; color: #000; }
+.tag.AI { background: cyan; }
+.tag.UI { background: orange; }
+.tag.Performance { background: lime; }
+.category { font-weight: bold; cursor: pointer; margin-top: 10px; }
+.category-content { display: none; margin-left: 10px; }
+.category.open .category-content { display: block; }
+</style>
+</head>
+<body>
+<header>
+  <h2>⚙️ StabMasterArson Enhancement Portal</h2>
+  <div id="offline" class="off">Offline Mode: OFF</div>
+</header>
+<div id="sidebar"></div>
+<div id="content">Loading enhancements...</div>
+
+<script>
+async function loadJSONs() {
+  let enhancements = [];
+  try {
+    const res = await fetch('./docs/manifest.json');
+    const manifest = await res.json();
+    enhancements = manifest.enhancements || [];
+    localStorage.setItem('manifest', JSON.stringify(manifest));
+    setOffline(true);
+  } catch {
+    const cached = localStorage.getItem('manifest');
+    if (cached) {
+      enhancements = JSON.parse(cached).enhancements;
+      setOffline(true);
+    } else {
+      setOffline(false);
+    }
+  }
+  render(enhancements);
+}
+
+function setOffline(status) {
+  const el = document.getElementById('offline');
+  if (status) {
+    el.className = 'on';
+    el.textContent = 'Offline Mode: ON';
+  } else {
+    el.className = 'off';
+    el.textContent = 'Offline Mode: OFF';
+  }
+}
+
+function render(data) {
+  const tags = new Set(data.flatMap(e => e.tags || []));
+  const sidebar = document.getElementById('sidebar');
+  sidebar.innerHTML = '<h3>Tags</h3>' + [...tags].map(t => `<div class="tag ${t}">${t}</div>`).join('');
+
+  const grouped = {};
+  for (const item of data) {
+    const cat = (item.category || 'Uncategorized');
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(item);
+  }
+
+  const content = document.getElementById('content');
+  content.innerHTML = Object.entries(grouped)
+    .map(([cat, list]) => `
+      <div class="category" onclick="this.classList.toggle('open')">${cat}
+        <div class="category-content">
+          ${list.map(e => `
+            <div><h4>${e.name}</h4>
+            <p>${e.description}</p>
+            ${(e.tags || []).map(t => `<span class="tag ${t}">${t}</span>`).join(' ')}
+            </div>`).join('<hr>')}
+        </div>
+      </div>`).join('');
+}
+loadJSONs();
+</script>
+</body>
+</html>
